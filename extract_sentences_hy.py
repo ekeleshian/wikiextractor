@@ -12,7 +12,7 @@ ONES = {'0': '00', '1': '01', '2': '02', '3': '03', '4': '04',
 
 def does_meet_criteria(text_str):
     words = text_str.split(" ")
-    if words > 14:
+    if len(words) < 3 or len(words) > 14:
         return False
 
     nums = re.findall('[0-9]+', text_str)
@@ -55,12 +55,13 @@ def process_article(folders):
                         if count > 3:
                             break
                         text = sentence.replace('\n', ' ')
+                        text = re.sub(' +', ' ', text)
+                        text = text.strip()
                         if (does_meet_criteria(text)):
                             count += 1
                             mutex.acquire()
                             try:
-                                approved_sentences.append(
-                                    text.strip())  # critical section
+                                approved_sentences.append(text)  # critical section
                             finally:
                                 mutex.release()
         print(f"\n{ch} folder done processed.")
