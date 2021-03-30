@@ -6,10 +6,15 @@ from threading import Thread, Lock
 mutex = Lock()
 approved_sentences = []
 
-ONES = {'0': '00', '1': '01', '2': '02', '3': '03', '4':'04', '5': '05', "6": "06", "7": "07", "8": "08", "9": "09"}
+ONES = {'0': '00', '1': '01', '2': '02', '3': '03', '4': '04',
+        '5': '05', "6": "06", "7": "07", "8": "08", "9": "09"}
 
 
 def does_meet_criteria(text_str):
+    words = text_str.split(" ")
+    if words > 14:
+        return False
+
     nums = re.findall('[0-9]+', text_str)
     if len(nums) > 0:
         return False
@@ -22,7 +27,8 @@ def does_meet_criteria(text_str):
     if len(abbreviations) > 0:
         return False
 
-    non_hy = ''.join(re.findall('[^\u0530-\u058F(\.)+,+-+«+»+]+', text_str)).strip()
+    non_hy = ''.join(re.findall(
+        '[^\u0530-\u058F(\.)+,+-+«+»+]+', text_str)).strip()
     if len(non_hy) > 0:
         return False
     return True
@@ -42,26 +48,25 @@ def process_article(folders):
                     data_json = json.loads(article)
                     text = data_json['text']
                     text = text.replace(":", "։")
-                    text_arr = text.split("։")
-                    text_arr = [text + '։' for text in text_arr]
+                    sentences = text.split("։")
+                    sentences = [text + '։' for text in sentences]
                     count = 0
-                    for text in text_arr:
+                    for sentence in sentences:
                         if count > 3:
                             break
-                        text = text.replace('\n', ' ')
-                        words = text.split(" ")
-                        if len(words) > 14:
-                            continue
+                        text = sentence.replace('\n', ' ')
                         if (does_meet_criteria(text)):
                             count += 1
                             mutex.acquire()
                             try:
-                                approved_sentences.append(text.strip()) #critical section
+                                approved_sentences.append(
+                                    text.strip())  # critical section
                             finally:
                                 mutex.release()
         print(f"\n{ch} folder done processed.")
         print(f'\n{len(approved_sentences)} collected.')
         print("***************")
+
 
 if __name__ == '__main__':
     threads = []
@@ -74,4 +79,3 @@ if __name__ == '__main__':
     print(f'dumping approved_sentences  (len: {len(approved_sentences)})')
     with open("approved_sentnces.pkl", "wb") as f:
         pickle.dump(approved_sentences, f)
-
