@@ -76,7 +76,10 @@ if __name__ == '__main__':
     for idx, t in enumerate(threads):
         print(f"starting thread {idx + 1}\n")
         t.start()
+        # t.join()
+    for t in threads:
         t.join()
+    
     print(f'dumping approved_sentences  (len: {len(approved_sentences)})')
     with open("approved_sentnces.pkl", "wb") as f:
         pickle.dump(approved_sentences, f)
