@@ -1,4 +1,5 @@
 import json
+import sys
 import pickle
 import re
 from threading import Thread, Lock
@@ -49,19 +50,19 @@ def process_article(folders):
                     text = data_json['text']
                     text = text.replace(":", "։")
                     sentences = text.split("։")
-                    sentences = [text + '։' for text in sentences]
+                    sentences = [txt + '։' for txt in sentences]
                     count = 0
                     for sentence in sentences:
                         if count > 3:
                             break
-                        text = sentence.replace('\n', ' ')
-                        text = re.sub(' +', ' ', text)
-                        text = text.strip()
-                        if (does_meet_criteria(text)):
+                        sentence = sentence.replace('\n', ' ')
+                        sentence = re.sub(' +', ' ', sentence)
+                        sentence = sentence.strip()
+                        if does_meet_criteria(sentence):
                             count += 1
                             mutex.acquire()
                             try:
-                                approved_sentences.append(text)  # critical section
+                                approved_sentences.append(sentence)  # critical section
                             finally:
                                 mutex.release()
         print(f"\n{ch} folder done processed.")
@@ -70,16 +71,17 @@ def process_article(folders):
 
 
 if __name__ == '__main__':
+
     threads = []
     for let_1, let_2 in [("A", "B"), ("C", "D"), ("E", "F"), ("G", "_")]:
         threads.append(Thread(target=process_article, args=([let_1, let_2],)))
     for idx, t in enumerate(threads):
         print(f"starting thread {idx + 1}\n")
         t.start()
-        # t.join()
     for t in threads:
         t.join()
-    
+
     print(f'dumping approved_sentences  (len: {len(approved_sentences)})')
-    with open("approved_sentnces.pkl", "wb") as f:
-        pickle.dump(approved_sentences, f)
+    with open("hy_wiki.txt", "w") as f:
+        for sentence in approved_sentences:
+            f.write(sentence+'\n')
