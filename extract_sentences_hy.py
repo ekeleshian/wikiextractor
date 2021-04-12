@@ -1,12 +1,12 @@
 import json
 import sys
-import pickle
 import random
 import re
 from threading import Thread, Lock
 import pandas as pd
 
 mutex = Lock()
+
 approved_sentences = []
 
 ONES = {'0': '00', '1': '01', '2': '02', '3': '03', '4': '04',
@@ -75,7 +75,7 @@ def process_article(folders):
 if __name__ == '__main__':
 
     if len(sys.argv) < 2:
-        print("must pass dialect code as first param: hy for eastern armenian, hyw for western armenian\n")
+        exit("must pass dialect code as first param: hy for eastern armenian, hyw for western armenian\n")
 
     if sys.argv[1] == "hy":
         file_name = 'hy_wiki'
@@ -83,9 +83,11 @@ if __name__ == '__main__':
         threads = []
         for let_1, let_2 in [("A", "B"), ("C", "D"), ("E", "F"), ("G", "_")]:
             threads.append(Thread(target=process_article, args=([let_1, let_2],)))
+
         for idx, t in enumerate(threads):
             print(f"starting thread {idx + 1}\n")
             t.start()
+            
         for t in threads:
             t.join()
     else:
@@ -105,7 +107,7 @@ if __name__ == '__main__':
                        "Sentence_Eval_2": list([" "]*len(sample)),
                        "Sentence_Eval_3": list([" "]*len(sample)),
                        "Comments": list([" "]*len(sample))})
-    
+
     df.to_csv(f"{file_name}.csv")
 
 
