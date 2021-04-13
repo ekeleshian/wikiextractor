@@ -1,9 +1,9 @@
+import csv
 import json
-import sys
 import random
 import re
+import sys
 from threading import Thread, Lock
-import pandas as pd
 
 mutex = Lock()
 
@@ -37,14 +37,19 @@ def does_meet_criteria(text_str):
     return True
 
 
-def process_article(folders):
-    for ch in folders:
+def process_article(sub_folders, folder):
+    n = 100
+    if folder == "text":
+        n = 40
+    for ch in sub_folders:
         if ch == "_":
             return
-        for i in range(40):
+        if ch == "H":
+            n = 34
+        for i in range(n):
             if i < 10:
                 i = ONES[str(i)]
-            filename = f'text/A{ch}/wiki_{i}'
+            filename = f'{folder}/A{ch}/wiki_{i}'
             with open(filename, 'r') as f:
                 data = f.readlines()
                 for idx, article in enumerate(data):
@@ -73,42 +78,45 @@ def process_article(folders):
 
 
 if __name__ == '__main__':
+    file_name = 'hy_wiki'
+    threads = []
 
-    if len(sys.argv) < 2:
-        exit("must pass dialect code as first param: hy for eastern armenian, hyw for western armenian\n")
+    # appending hy.wikipedia sentences in approved_sentences list
+    for let_1, let_2 in [("A", "B"), ("C", "D"), ("E", "F"), ("G", "H")]:
+        threads.append(Thread(target=process_article, args=([let_1, let_2],'text_ea')))
 
-    if sys.argv[1] == "hy":
-        file_name = 'hy_wiki'
-        sample_size = 4097
-        threads = []
-        for let_1, let_2 in [("A", "B"), ("C", "D"), ("E", "F"), ("G", "_")]:
-            threads.append(Thread(target=process_article, args=([let_1, let_2],)))
+    # appending hyw.wikipedia sentences in approved_sentences list
+    threads.append(Thread(target=process_article, args=(["A", "_"], "text")))
 
-        for idx, t in enumerate(threads):
-            print(f"starting thread {idx + 1}\n")
-            t.start()
-            
-        for t in threads:
-            t.join()
-    else:
-        file_name = 'hyw_wiki'
-        process_article(["A", "_"])
-        sample_size = 3172
+    for idx, t in enumerate(threads):
+        print(f"starting thread {idx + 1}\n")
+        t.start()
+
+    for t in threads:
+        t.join()
 
     print(f'dumping approved_sentences  (len: {len(approved_sentences)})')
     with open(f"{file_name}.txt", "w") as f:
         for sentence in approved_sentences:
             f.write(sentence+'\n')
 
-    sample = random.sample(approved_sentences, sample_size)
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "generate_sample":
+            sample_size = 4103  # calculated this number from https://www.surveymonkey.com/mp/sample-size-calculator/
+            print('\ngenerating random sample.....')
+            sample = random.sample(approved_sentences, sample_size)
 
-    df = pd.DataFrame({"Sentence": sample,
-                       "Sentence_Eval_1": list([" "]*len(sample)),
-                       "Sentence_Eval_2": list([" "]*len(sample)),
-                       "Sentence_Eval_3": list([" "]*len(sample)),
-                       "Comments": list([" "]*len(sample))})
-
-    df.to_csv(f"{file_name}.csv")
+            with open(f'{file_name}.csv', 'w', newline='') as csvfile:
+                empty_column = list([" "] * len(sample))
+                fieldnames = ['Sentence', 'Sentence_Eval_1', 'Sentence_Eval_2', 'Sentence_Eval_3', 'Comments']
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                rows = [{'Sentence': s,
+                         'Sentence_Eval_1': " ",
+                          'Sentence_Eval_2': " ",
+                          'Sentence_Eval_3': " ",
+                          'Comments': " "} for s in sample]
+                writer.writerows(rows)
 
 
 
