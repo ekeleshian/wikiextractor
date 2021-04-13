@@ -34,6 +34,7 @@ def does_meet_criteria(text_str):
         '[^\u0530-\u058F(\.)+,+-+«+»+]+', text_str)).strip()
     if len(non_hy) > 0:
         return False
+
     return True
 
 
@@ -44,14 +45,18 @@ def process_article(sub_folders, folder):
     for ch in sub_folders:
         if ch == "_":
             return
+
         if ch == "H":
             n = 34
+
         for i in range(n):
             if i < 10:
                 i = ONES[str(i)]
+
             filename = f'{folder}/A{ch}/wiki_{i}'
             with open(filename, 'r') as f:
                 data = f.readlines()
+
                 for idx, article in enumerate(data):
                     data_json = json.loads(article)
                     text = data_json['text']
@@ -59,19 +64,24 @@ def process_article(sub_folders, folder):
                     sentences = text.split("։")
                     sentences = [txt + '։' for txt in sentences]
                     count = 0
+
                     for sentence in sentences:
                         if count > 3:
                             break
+
                         sentence = sentence.replace('\n', ' ')
                         sentence = re.sub(' +', ' ', sentence)
                         sentence = sentence.strip()
+
                         if does_meet_criteria(sentence):
                             count += 1
                             mutex.acquire()
+
                             try:
                                 approved_sentences.append(sentence)  # critical section
                             finally:
                                 mutex.release()
+
         print(f"\n{ch} folder done processed.")
         print(f'\n{len(approved_sentences)} collected.')
         print("***************")
