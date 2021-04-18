@@ -12,8 +12,63 @@ approved_sentences = []
 ONES = {'0': '00', '1': '01', '2': '02', '3': '03', '4': '04',
         '5': '05', "6": "06", "7": "07", "8": "08", "9": "09"}
 
+BLOCK_WORDS = [
+    "լեյկոդիստրոֆիա",
+    "պրոտեինուրիա",
+    "պրեէկլամպսիան",
+    "հ֊իդրոֆիտների",
+    "ռաուխտոպազ",
+    "էյկոզանոիդ",
+    "էուկարիոտ",
+    "նուկլեոտիդ",
+    "մելիզմ",
+    "ամեոբայ",
+    "պալովեեռե",
+    "անդեզիտադացիտայ",
+    "մեթիլացմամբ",
+    "ադենին",
+    "ցիտոզ",
+    "ռեստրիկտազ",
+    "կովալենտայ",
+    "նիտրիդ",
+    "ինդիում",
+    "տրդելնեիկ",
+    "բյուրեղագիտական",
+    "հակամիտոտիկ",
+    "կոլխիցին",
+    "տուբուլ",
+    "պենտան",
+    "ներմոլեկուլա",
+    "միջմոլեկուլա",
+    "կվարտսեքստակորդ",
+    "մինչշելյան",
+    "բուսաբանություն",
+    "ծագումնաբանություն",
+    "կենսաքիմիա",
+    "մանրէաբանություն",
+    "լագման",
+    "գույրու",
+    "սյուոյուժոու",
+    "գոյուժոու",
+    "բոսո",
+    "տոպոիզոմերազ",
+    "բենզո",
+    "ռեկտիֆիկացիա",
+    "կապրոլակտամ",
+    "լուծահանման",
+    "բուկմոլ",
+    "հանքանյութ",
+    "իկեբանա",
+    "մոնտրոյալիտ",
+    "փոքրլեհական",
+    "դոլոմիտ",
+    "դեզօքսիխոլատ"
+]
 
 def does_meet_criteria(text_str):
+    if text_str == "Տվյալներն ըստ ջրային ռեսուրսների ֆեդերատիվ տեսչության։":
+        return False
+
     words = text_str.split(" ")
     if len(words) < 3 or len(words) > 14:
         return False
@@ -35,6 +90,30 @@ def does_meet_criteria(text_str):
     if len(non_hy) > 0:
         return False
 
+    empty_parens = re.findall("\(\)", text_str)
+    if len(empty_parens) > 0:
+        return False
+
+    unclosed_quotes = re.findall("«|»", text_str)
+    if len(unclosed_quotes) % 2 != 0:
+        return False
+
+    common_fragments = re.findall(r'\s։|:', text_str)
+    if len(common_fragments) > 0:
+        return False
+
+    if text_str[0].islower():
+        return False
+
+    common_misspelling = re.findall('ոււ', text_str)
+    if len(common_misspelling) > 0:
+        return False
+
+    global BLOCK_WORDS
+    block_words = re.findall('|'.join(BLOCK_WORDS), text_str)
+    if len(block_words) > 0:
+        return False
+
     return True
 
 
@@ -42,6 +121,7 @@ def process_article(sub_folders, folder):
     n = 100
     if folder == "text":
         n = 40
+
     for ch in sub_folders:
         if ch == "_":
             return
@@ -68,7 +148,6 @@ def process_article(sub_folders, folder):
                     for sentence in sentences:
                         if count > 3:
                             break
-
                         sentence = sentence.replace('\n', ' ')
                         sentence = re.sub(' +', ' ', sentence)
                         sentence = sentence.strip()
