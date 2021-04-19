@@ -62,15 +62,21 @@ BLOCK_WORDS = [
     "մոնտրոյալիտ",
     "փոքրլեհական",
     "դոլոմիտ",
-    "դեզօքսիխոլատ"
+    "դեզօքսիխոլատ",
+    "տվյալներն",
+    "ատոմ",
+    "Նոքալաքեւի",
+    "թեփոտ",
+    "հասկիկ",
+    "Լուկաշուիլի",
+    "հուզաթաղանթ"
 ]
 
+
 def does_meet_criteria(text_str):
-    if text_str == "Տվյալներն ըստ ջրային ռեսուրսների ֆեդերատիվ տեսչության։":
-        return False
 
     words = text_str.split(" ")
-    if len(words) < 3 or len(words) > 14:
+    if len(words) < 3 or len(words) > 11:
         return False
 
     nums = re.findall('[0-9]+', text_str)
@@ -110,7 +116,7 @@ def does_meet_criteria(text_str):
         return False
 
     global BLOCK_WORDS
-    block_words = re.findall('|'.join(BLOCK_WORDS), text_str)
+    block_words = re.findall('|'.join(BLOCK_WORDS), text_str.lower())
     if len(block_words) > 0:
         return False
 
@@ -167,7 +173,7 @@ def process_article(sub_folders, folder):
 
 
 if __name__ == '__main__':
-    file_name = 'hy_wiki'
+    file_name = 'hy_wiki_v2'
     threads = []
 
     # appending hy.wikipedia sentences in approved_sentences list
